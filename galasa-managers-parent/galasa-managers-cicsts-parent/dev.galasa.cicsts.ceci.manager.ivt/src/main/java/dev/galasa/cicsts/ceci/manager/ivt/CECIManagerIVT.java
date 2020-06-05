@@ -99,7 +99,7 @@ public class CECIManagerIVT {
      * Attempts to retrieve a variable that has been deleted
      * @throws CECIException
      */
-    //@Test
+    @Test
     public void basicDeleteTest() throws CECIException{
         String variableContent = "THIS IS A TEXT STRING";
         String variableName = "TEST2";
@@ -117,7 +117,7 @@ public class CECIManagerIVT {
      * Currently fails to delete the vairable after it has been retrieved
      * @throws CECIException
      */
-    //@Test
+    @Test
     public void checkStoringVariableDefinition()throws CECIException{
         String variableContent = "THIS IS A TEXT STRING";
         String variableName = "TEST1";
@@ -140,7 +140,7 @@ public class CECIManagerIVT {
      * currently causes the manager to go into a loop
      * @throws CECIException
      */
-    //@Test
+    @Test
     public void basicCommandExecution()throws CECIException{
         String userVariable = "USERID";
         String command = "ASSIGN USERID(&" + userVariable + ")";
@@ -183,7 +183,7 @@ public class CECIManagerIVT {
      * @throws InterruptedException
      * @throws Zos3270Exception
      */
-    //@Test
+    @Test
     public void writeToTSQTest()throws CECIException, InterruptedException, Zos3270Exception{
         String queueName = "queue1";
         String dataToWrite = "My name is Hobbit";
@@ -203,7 +203,7 @@ public class CECIManagerIVT {
      * second definition takes effect 
      * @throws CECIException
      */
-    //@Test
+    @Test
     public void canWeDefineTwoVariablesWithSameName() throws CECIException {
         String variableName = "NOTUNIQUE";
         String value1 = "value1";
@@ -221,7 +221,7 @@ public class CECIManagerIVT {
      * currently failing
      * @throws CECIException
      */ 
-    //@Test
+    @Test
     public void putAndGetDataToAContainer() throws CECIException{
         String containerName = "CONT1";
         String containerData = "THIS IS SOME CONTAINER DATA";
