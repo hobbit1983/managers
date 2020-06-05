@@ -51,22 +51,23 @@ public class CECIManagerIVT {
     public void login()throws InterruptedException, Zos3270Exception {
         //Logon to the CICS Region
         ceciTerminal.waitForKeyboard();
-        ceciTerminal.type("logon applid(CICS01)");
+        ceciTerminal.type("logon applid(IYK2ZNB3)");
         ceciTerminal.enter();
-        ceciTerminal.waitForTextInField("This is the CICS MRO Terminal Owing Region");
+        ceciTerminal.waitForTextInField("IYK2ZNB3");
         ceciTerminal.clear();
         ceciTerminal.waitForKeyboard();
         ceciTerminal.type("CECI").enter().waitForKeyboard();
 
         terminal.waitForKeyboard();
-        terminal.type("logon applid(CICS01)");
+        terminal.type("logon applid(IYK2ZNB3)");
         terminal.enter();
-        terminal.waitForTextInField("This is the CICS MRO Terminal Owing Region");
+        terminal.waitForTextInField("IYK2ZNB3");
         terminal.clear();
         terminal.waitForKeyboard();
+       // terminal.type("CECI").enter().waitForKeyboard().pf3().clear();
     }
 
-    /**
+    /**cebr
      * Ensure that we have an instance of the CECI Manager
      * 
      * @throws IvtException if there is a problem with the docker manager
@@ -154,11 +155,11 @@ public class CECIManagerIVT {
     @Test
     public void documentationTestBasicCommand() throws CECIException {
         String ceciCommand = "EXEC CICS WRITE OPERATOR TEXT('About to execute Galasa Test...')";
-        ICECIResponse resp = ceci.issueCommand(terminal, ceciCommand);
+        ICECIResponse resp = ceci.issueCommand(ceciTerminal, ceciCommand);
         assertThat(resp.isNormal()).isTrue();
     }
 
-    @Test
+    //@Test
     public void documentationTestLinkWithContainer() throws CECIException {
         String inputData = "My_Container_Data";
         ICECIResponse resp = ceci.putContainer(ceciTerminal, "MY-CHANNEL", "MY-CONTAINER-IN", inputData, null, null, null);
@@ -169,12 +170,6 @@ public class CECIManagerIVT {
         assertThat(resp.isNormal()).isTrue();
         String outputData = ceci.retrieveVariableText(ceciTerminal, "&DATAOUT");
         assertThat(outputData).isEqualTo(inputData);
-    }
-
-    private void checkqueue(String queueName, String checkData) throws InterruptedException, Zos3270Exception{
-        terminal.type("CEBR " + queueName).enter().waitForKeyboard();
-        assertThat(terminal.retrieveScreen().contains(checkData));
-        terminal.pf3().waitForKeyboard().clear().waitForKeyboard();
     }
 
     /**
@@ -188,14 +183,21 @@ public class CECIManagerIVT {
         String queueName = "queue1";
         String dataToWrite = "My name is Hobbit";
         String variableName = "TSQDATA";
+
         ceci.defineVariableText(ceciTerminal, variableName, dataToWrite);
         String command = "WRITEQ TS QUEUE('" + queueName +"') FROM(&" + variableName + ")";
         ceci.issueCommand(ceciTerminal, command);
-        checkqueue(queueName, dataToWrite);
+
+        terminal.type("CEBR " + queueName).enter().waitForKeyboard();
+        assertThat(terminal.retrieveScreen()).containsIgnoringCase(dataToWrite);
+        terminal.pf3().waitForKeyboard().clear().waitForKeyboard();
+
         command = "DELETEQ TS QUEUE('" + queueName + "')";
         ceci.issueCommand(ceciTerminal, command);
-        checkqueue(queueName, "DOES NOT EXIST");
-        
+
+        terminal.type("CEBR " + queueName).enter().waitForKeyboard();
+        assertThat(terminal.retrieveScreen()).contains("DOES NOT EXIST");
+        terminal.pf3().waitForKeyboard().clear().waitForKeyboard();        
     }
 
     /**
