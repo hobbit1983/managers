@@ -7,8 +7,6 @@ package dev.galasa.cicsts.ceci.manager.ivt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.validation.constraints.AssertTrue;
-
 import org.apache.commons.logging.Log;
 
 import dev.galasa.Test;
@@ -151,6 +149,26 @@ public class CECIManagerIVT {
         String user = ceci.retrieveVariableText(ceciTerminal, userVariable);
         logger.info("Retrieved user was: " + user);
         logger.info("response from command was: " + resp.getResponse());
+    }
+
+    @Test
+    public void documentationTestBasicCommand() throws CECIException {
+        String ceciCommand = "EXEC CICS WRITE OPERATOR TEXT('About to execute Galasa Test...')";
+        ICECIResponse resp = ceci.issueCommand(terminal, ceciCommand);
+        assertThat(resp.isNormal()).isTrue();
+    }
+
+    @Test
+    public void documentationTestLinkWithContainer() throws CECIException {
+        String inputData = "My_Container_Data";
+        ICECIResponse resp = ceci.putContainer(ceciTerminal, "MY-CHANNEL", "MY-CONTAINER-IN", inputData, null, null, null);
+        assertThat(resp.isNormal()).isTrue();
+        resp = ceci.linkProgramWithChannel(ceciTerminal, "MYPROG", "MY-CHANNEL", null, null, false);
+        assertThat(resp.isNormal()).isTrue();
+        resp = ceci.getContainer(ceciTerminal, "MY-CHANNEL", "MY-CONTAINER-OUT", "&DATAOUT", null, null);
+        assertThat(resp.isNormal()).isTrue();
+        String outputData = ceci.retrieveVariableText(ceciTerminal, "&DATAOUT");
+        assertThat(outputData).isEqualTo(inputData);
     }
 
     private void checkqueue(String queueName, String checkData) throws InterruptedException, Zos3270Exception{
