@@ -32,15 +32,6 @@ import dev.galasa.zos3270.Zos3270Exception;
 @Test
 public class CECIManagerIVT {
 
-    // @ZosImage(imageTag = "GENAPP")
-    // public IZosImage zosImage;
-
-    // @Zos3270Terminal(imageTag = "GENAPP")
-    // public ITerminal ceciTerminal;
-
-    // @Zos3270Terminal(imageTag = "GENAPP")
-    // public ITerminal terminal;
-
     @CicsRegion()
     public ICicsRegion cics;
 
@@ -65,17 +56,20 @@ public class CECIManagerIVT {
 
         cebrTerminal.clear();
         cebrTerminal.waitForKeyboard();
-       // terminal.type("CECI").enter().waitForKeyboard().pf3().clear();
     }
 
-    /**cebr
+    /**
      * Ensure that we have an instance of the CECI Manager
+     * Two terminals and a CICS
      * 
      * @throws IvtException if there is a problem with the docker manager
      */
     @Test
     public void checkCECINotNull() {
         assertThat(ceci).isNotNull();
+        assertThat(cics).isNotNull();
+        assertThat(cebrTerminal).isNotNull();
+        assertThat(ceciTerminal).isNotNull();
     }
 
     /**
