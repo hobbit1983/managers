@@ -41,6 +41,9 @@ public class CECIManagerIVT {
     @CicsTerminal()
     public ICicsTerminal cebrTerminal;
 
+    @CicsTerminal()
+    public ICicsTerminal lowerCase;
+
     @CECI
     public ICECI ceci;
 
@@ -56,6 +59,11 @@ public class CECIManagerIVT {
 
         cebrTerminal.clear();
         cebrTerminal.waitForKeyboard();
+
+        lowerCase.clear();
+        lowerCase.waitForKeyboard();
+        lowerCase.type("CEOT TRANID").enter().waitForKeyboard().pf3().waitForKeyboard().clear().waitForKeyboard();
+        lowerCase.type("CECI").enter().waitForKeyboard();
     }
 
     /**
@@ -229,4 +237,27 @@ public class CECIManagerIVT {
         ceci.getContainer(ceciTerminal, channelName, containerName, variableName, null,null);
         assertThat(ceci.retrieveVariableText(ceciTerminal, variableName).equals(containerData));
     }  
+
+    @Test
+    public void linkToProgram() throws CECIException {
+        String inputData = "abcdefghij";
+        ceci.defineVariableText(lowerCase, "input", inputData);
+        String execString = "LINK PROGRAM(APITEST) COMMAREA(&input)";
+        ICECIResponse resp = ceci.issueCommand(lowerCase, execString);
+        assertThat(resp.getEIBRESP()).isZero();
+        String outputData = ceci.retrieveVariableText(lowerCase, "&input");
+        assertThat(outputData).isUpperCase();
+        assertThat(outputData).isEqualToIgnoringCase(inputData);
+    }
+
+    @Test
+    public void aReallyLongPieceOfInput() throws CECIException {
+        StringBuilder sb = new StringBuilder();
+        for(int a = 0; a<2500; a++){
+            sb.append("0123456789");
+        }
+        String inputData = sb.toString();
+        logger.info("input length is: " + inputData.length());
+        ceci.defineVariableText(ceciTerminal, "LONG", inputData);
+    }
 }
