@@ -42,13 +42,13 @@ public class CECIManagerIVT {
     // public ITerminal terminal;
 
     @CicsRegion()
-    ICicsRegion cics;
+    public ICicsRegion cics;
 
     @CicsTerminal()
-    ICicsTerminal ceciTerminal;
+    public ICicsTerminal ceciTerminal;
 
     @CicsTerminal()
-    ICicsTerminal cebrTerminal;
+    public ICicsTerminal cebrTerminal;
 
     @CECI
     public ICECI ceci;
