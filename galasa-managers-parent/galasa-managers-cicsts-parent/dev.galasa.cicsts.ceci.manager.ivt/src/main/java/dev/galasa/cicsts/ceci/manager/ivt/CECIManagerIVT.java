@@ -11,15 +11,15 @@ import org.apache.commons.logging.Log;
 
 import dev.galasa.Test;
 import dev.galasa.BeforeClass;
+import dev.galasa.cicsts.CicsRegion;
+import dev.galasa.cicsts.CicsTerminal;
+import dev.galasa.cicsts.ICicsRegion;
+import dev.galasa.cicsts.ICicsTerminal;
 import dev.galasa.cicsts.ceci.CECI;
 import dev.galasa.cicsts.ceci.CECIException;
 import dev.galasa.cicsts.ceci.ICECI;
 import dev.galasa.cicsts.ceci.ICECIResponse;
 import dev.galasa.core.manager.Logger;
-import dev.galasa.zos.IZosImage;
-import dev.galasa.zos.ZosImage;
-import dev.galasa.zos3270.ITerminal;
-import dev.galasa.zos3270.Zos3270Terminal;
 import dev.galasa.zos3270.Zos3270Exception;
 
 /**
@@ -32,14 +32,23 @@ import dev.galasa.zos3270.Zos3270Exception;
 @Test
 public class CECIManagerIVT {
 
-    @ZosImage(imageTag="GENAPP")
-    public IZosImage zosImage;
+    // @ZosImage(imageTag = "GENAPP")
+    // public IZosImage zosImage;
 
-    @Zos3270Terminal(imageTag = "GENAPP")
-    public ITerminal ceciTerminal;
+    // @Zos3270Terminal(imageTag = "GENAPP")
+    // public ITerminal ceciTerminal;
 
-    @Zos3270Terminal(imageTag = "GENAPP")
-    public ITerminal terminal;
+    // @Zos3270Terminal(imageTag = "GENAPP")
+    // public ITerminal terminal;
+
+    @CicsRegion()
+    ICicsRegion cics;
+
+    @CicsTerminal()
+    ICicsTerminal ceciTerminal;
+
+    @CicsTerminal()
+    ICicsTerminal cebrTerminal;
 
     @CECI
     public ICECI ceci;
@@ -50,20 +59,12 @@ public class CECIManagerIVT {
     @BeforeClass
     public void login()throws InterruptedException, Zos3270Exception {
         //Logon to the CICS Region
-        ceciTerminal.waitForKeyboard();
-        ceciTerminal.type("logon applid(IYK2ZNB3)");
-        ceciTerminal.enter();
-        ceciTerminal.waitForTextInField("IYK2ZNB3");
         ceciTerminal.clear();
         ceciTerminal.waitForKeyboard();
         ceciTerminal.type("CECI").enter().waitForKeyboard();
 
-        terminal.waitForKeyboard();
-        terminal.type("logon applid(IYK2ZNB3)");
-        terminal.enter();
-        terminal.waitForTextInField("IYK2ZNB3");
-        terminal.clear();
-        terminal.waitForKeyboard();
+        cebrTerminal.clear();
+        cebrTerminal.waitForKeyboard();
        // terminal.type("CECI").enter().waitForKeyboard().pf3().clear();
     }
 
@@ -188,16 +189,16 @@ public class CECIManagerIVT {
         String command = "WRITEQ TS QUEUE('" + queueName +"') FROM(&" + variableName + ")";
         ceci.issueCommand(ceciTerminal, command);
 
-        terminal.type("CEBR " + queueName).enter().waitForKeyboard();
-        assertThat(terminal.retrieveScreen()).containsIgnoringCase(dataToWrite);
-        terminal.pf3().waitForKeyboard().clear().waitForKeyboard();
+        cebrTerminal.type("CEBR " + queueName).enter().waitForKeyboard();
+        assertThat(cebrTerminal.retrieveScreen()).containsIgnoringCase(dataToWrite);
+        cebrTerminal.pf3().waitForKeyboard().clear().waitForKeyboard();
 
         command = "DELETEQ TS QUEUE('" + queueName + "')";
         ceci.issueCommand(ceciTerminal, command);
 
-        terminal.type("CEBR " + queueName).enter().waitForKeyboard();
-        assertThat(terminal.retrieveScreen()).contains("DOES NOT EXIST");
-        terminal.pf3().waitForKeyboard().clear().waitForKeyboard();        
+        cebrTerminal.type("CEBR " + queueName).enter().waitForKeyboard();
+        assertThat(cebrTerminal.retrieveScreen()).contains("DOES NOT EXIST");
+        cebrTerminal.pf3().waitForKeyboard().clear().waitForKeyboard();        
     }
 
     /**
