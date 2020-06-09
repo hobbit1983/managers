@@ -7,9 +7,12 @@ package dev.galasa.cicsts.ceci.manager.ivt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Random;
+
 import org.apache.commons.logging.Log;
 
 import dev.galasa.Test;
+import dev.galasa.AfterClass;
 import dev.galasa.BeforeClass;
 import dev.galasa.cicsts.CicsRegion;
 import dev.galasa.cicsts.CicsTerminal;
@@ -251,13 +254,24 @@ public class CECIManagerIVT {
     }
 
     @Test
-    public void aReallyLongPieceOfInput() throws CECIException {
+    public void linkToProgramChannel() throws CECIException {
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder();
-        for(int a = 0; a<2500; a++){
-            sb.append("0123456789");
+        Random r = new Random();
+        for(int a = 0; a<25000; a++){
+            sb.append(alphabet.charAt(r.nextInt(26)));
         }
-        String inputData = sb.toString();
-        logger.info("input length is: " + inputData.length());
-        ceci.defineVariableText(ceciTerminal, "LONG", inputData);
+        ceci.defineVariableText(lowerCase, "input", sb.toString());
+        ceci.issueCommand(lowerCase, "PUT CONTAINER(HOBBIT) FROM(&input) CHANNEL(HOBBITCHAN)");
+        ceci.issueCommand(lowerCase, "LINK PROGRAM(CONTTEST) CHANNEL(HOBBITCHAN)");
+        ceci.issueCommand(lowerCase, "GET CONTAINER(HOBBIT) INTO(&output) CHANNEL(HOBBITCHAN)");
+        String outputData = ceci.retrieveVariableText(lowerCase, "&output");
+        assertThat(outputData).isUpperCase();
+        assertThat(outputData).isEqualToIgnoringCase(sb.toString());
+    }
+
+    @AfterClass
+    public void cleanUp() throws CECIException{
+        ceci.deleteAllVariables(ceciTerminal);
     }
 }
