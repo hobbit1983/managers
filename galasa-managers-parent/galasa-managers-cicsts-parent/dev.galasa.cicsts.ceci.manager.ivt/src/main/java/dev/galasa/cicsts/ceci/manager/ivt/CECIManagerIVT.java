@@ -253,21 +253,74 @@ public class CECIManagerIVT {
         assertThat(outputData).isEqualToIgnoringCase(inputData);
     }
 
-    @Test
-    public void linkToProgramChannel() throws CECIException {
+    private String constructRandomString(int length) {
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder();
         Random r = new Random();
-        for(int a = 0; a<25000; a++){
+        for(int a = 0; a<length; a++){
             sb.append(alphabet.charAt(r.nextInt(26)));
         }
-        ceci.defineVariableText(lowerCase, "input", sb.toString());
+        return sb.toString();
+    }
+
+    @Test
+    public void linkToProgramChannel() throws CECIException {
+        String inputData = constructRandomString(25000);
+        ceci.defineVariableText(lowerCase, "input", inputData);
         ceci.issueCommand(lowerCase, "PUT CONTAINER(HOBBIT) FROM(&input) CHANNEL(HOBBITCHAN)");
         ceci.issueCommand(lowerCase, "LINK PROGRAM(CONTTEST) CHANNEL(HOBBITCHAN)");
         ceci.issueCommand(lowerCase, "GET CONTAINER(HOBBIT) INTO(&output) CHANNEL(HOBBITCHAN)");
         String outputData = ceci.retrieveVariableText(lowerCase, "&output");
         assertThat(outputData).isUpperCase();
-        assertThat(outputData).isEqualToIgnoringCase(sb.toString());
+        assertThat(outputData).isEqualToIgnoringCase(inputData);
+    }
+
+    @Test
+    public void testDataTypesBinary() throws CECIException {
+        ceci.defineVariableBinary(ceciTerminal, "BINARY", "BinaryString".toCharArray());
+        String response = new String(ceci.retrieveVariableBinary(ceciTerminal, "BINARY"));
+        assertThat(response).isEqualTo("BinaryString");
+
+        //attempt to define a binary variable longer than allowed
+        ceci.deleteVariable(ceciTerminal, "BINARY");
+        try {
+            ceci.defineVariableBinary(ceciTerminal, "BINARY", constructRandomString(32768).toCharArray());
+        }catch(CECIException ce){
+            assertThat(ce.getMessage()).contains("CECI variable value length 32768 greater than maximum 32767");
+        }     
+    }
+
+    @Test
+    public void testDataTypesDouble() throws CECIException {
+        long inputValue = 9223372036854775806L;
+        ceci.defineVariableDoubleWord(ceciTerminal, "DOUBLE", inputValue);
+        long response = ceci.retrieveVariableDoubleWord(ceciTerminal, "DOUBLE");
+        assertThat(response).isEqualTo(inputValue);
+    }
+
+    @Test
+    public void testDataTypesFull() throws CECIException {
+        int inputValue = Integer.MAX_VALUE;
+        ceci.defineVariableFullWord(ceciTerminal, "FULL", inputValue);
+        long response = ceci.retrieveVariableFullWord(ceciTerminal, "FULL");
+        assertThat(response).isEqualTo(inputValue);
+
+    }
+
+    @Test
+    public void testDataTypesHalf() throws CECIException {
+        int inputValue = 32766;
+        ceci.defineVariableHalfWord(ceciTerminal, "HALF", inputValue);
+        int response = ceci.retrieveVariableHalfWord(ceciTerminal, "HALF");
+        assertThat(response).isEqualTo(inputValue);
+    }
+
+    @Test
+    public void testDataTypesPacked() throws CECIException {
+        int inputValue = 9999998;
+        ceci.defineVariablePacked(ceciTerminal, "PACKED", inputValue);
+        long response = ceci.retrieveVariablePacked(ceciTerminal, "PACKED");
+        assertThat(response).isEqualTo(inputValue);
     }
 
     @AfterClass
