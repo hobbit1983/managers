@@ -16,7 +16,7 @@
 
 	<dependencies>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
+            <groupId>dev.galasa</groupId>
             <artifactId>gson</artifactId>
             <version>2.7</version>
             <scope>test</scope>
