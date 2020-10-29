@@ -320,6 +320,7 @@ public class RseapiZosDatasetAttributesListdsi {
         return date;
     }
 
+    //TODO - use RSI API TSO when 3.2.0.12 is available
     protected JsonObject execListdsi(String dsname) throws ZosDatasetException {
         String command = "tsocmd \"EXEC '" + execDatasetName + "(" + LISTDSI_EXEC_NAME + ")' '" + dsname + "'\" 2>/dev/null;echo RC=$?";
         IRseapiResponse response;
@@ -327,7 +328,7 @@ public class RseapiZosDatasetAttributesListdsi {
             JsonObject requestBody = new JsonObject();
             requestBody.addProperty(PROP_INVOCATION, command);
             requestBody.addProperty(PROP_PATH, "/usr/bin");
-			response = this.rseapiApiProcessor.sendRequest(RseapiRequestType.POST_JSON, RESTUNIXCOMMANDS_PATH, null, requestBody, RseapiZosDatasetImpl.VALID_STATUS_CODES, false);
+			response = this.rseapiApiProcessor.sendRequest(RseapiRequestType.POST_JSON, RESTUNIXCOMMANDS_PATH, null, requestBody, RseapiZosFileHandlerImpl.VALID_STATUS_CODES, false);
         } catch (RseapiException e) {
             throw new ZosDatasetException(e);
         }
@@ -372,7 +373,7 @@ public class RseapiZosDatasetAttributesListdsi {
         this.execDataset = (RseapiZosDatasetImpl) this.zosFileHandler.newDataset(this.execDatasetName, this.image);
         if (!this.execDataset.exists()) {
             execDataset.setDatasetOrganization(DatasetOrganization.PARTITIONED);
-            //TODO
+            //TODO Enabled in when 3.2.0.13
 //          execDataset.setDatasetType(DSType.LIBRARY);
             execDataset.setDirectoryBlocks(1);
             execDataset.setRecordFormat(RecordFormat.VARIABLE_BLOCKED);

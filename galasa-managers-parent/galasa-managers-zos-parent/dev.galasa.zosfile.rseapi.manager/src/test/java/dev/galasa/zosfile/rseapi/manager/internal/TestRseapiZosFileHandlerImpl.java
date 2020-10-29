@@ -3,7 +3,7 @@
  * 
  * (c) Copyright IBM Corp. 2020.
  */
-package dev.galasa.zosfile.zosmf.manager.internal;
+package dev.galasa.zosfile.rseapi.manager.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,16 +28,16 @@ import dev.galasa.zos.internal.ZosManagerImpl;
 import dev.galasa.zosfile.ZosDatasetException;
 import dev.galasa.zosfile.ZosUNIXFileException;
 import dev.galasa.zosfile.ZosVSAMDatasetException;
-import dev.galasa.zosmf.IZosmfRestApiProcessor;
-import dev.galasa.zosmf.internal.ZosmfManagerImpl;
+import dev.galasa.zosrseapi.IRseapiRestApiProcessor;
+import dev.galasa.zosrseapi.internal.RseapiManagerImpl;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LogFactory.class})
-public class TestZosmfZosFileHandlerImpl {
+public class TestRseapiZosFileHandlerImpl {
     
-    private ZosmfZosFileHandlerImpl zosFileHandler;
+    private RseapiZosFileHandlerImpl zosFileHandler;
 
-    private ZosmfZosFileHandlerImpl zosFileHandlerSpy;
+    private RseapiZosFileHandlerImpl zosFileHandlerSpy;
 
     @Mock
     private IZosImage zosImageMock;
@@ -46,19 +46,19 @@ public class TestZosmfZosFileHandlerImpl {
     private ZosManagerImpl zosManagerMock;
     
     @Mock
-    private ZosmfManagerImpl zosmfManagerMock;
+    private RseapiManagerImpl rseapiManagerMock;
     
     @Mock
-    private IZosmfRestApiProcessor zosmfApiProcessorMock;
+    private IRseapiRestApiProcessor rseapiApiProcessorMock;
     
     @Mock
-    private ZosmfZosDatasetImpl zosDatasetImplMock;
+    private RseapiZosDatasetImpl zosDatasetImplMock;
     
     @Mock
-    private ZosmfZosVSAMDatasetImpl zosVSAMDatasetImplMock;
+    private RseapiZosVSAMDatasetImpl zosVSAMDatasetImplMock;
     
     @Mock
-    private ZosmfZosUNIXFileImpl zosUNIXFileImplMock;
+    private RseapiZosUNIXFileImpl zosUNIXFileImplMock;
     
     @Mock
     private Log logMock;
@@ -87,35 +87,35 @@ public class TestZosmfZosFileHandlerImpl {
         Mockito.doAnswer(answer).when(logMock).error(Mockito.any(), Mockito.any());
         Mockito.when(zosImageMock.getImageID()).thenReturn("image");
         Mockito.when(zosManagerMock.getZosFilePropertyFileRestrictToImage(Mockito.any())).thenReturn(true);
-        ZosmfZosFileManagerImpl.setZosManager(zosManagerMock);
-        PowerMockito.doReturn(zosmfApiProcessorMock).when(zosmfManagerMock).newZosmfRestApiProcessor(Mockito.any(), Mockito.anyBoolean());
-        ZosmfZosFileManagerImpl.setZosmfManager(zosmfManagerMock);
+        RseapiZosFileManagerImpl.setZosManager(zosManagerMock);
+        PowerMockito.doReturn(rseapiApiProcessorMock).when(rseapiManagerMock).newRseapiRestApiProcessor(Mockito.any(), Mockito.anyBoolean());
+        RseapiZosFileManagerImpl.setRseapiManager(rseapiManagerMock);
 
-        zosFileHandler = new ZosmfZosFileHandlerImpl();
+        zosFileHandler = new RseapiZosFileHandlerImpl();
         zosFileHandlerSpy = Mockito.spy(zosFileHandler);
     }
     
     @Test
     public void testConstructor() {
-        Assert.assertEquals("Constructor should return ", zosFileHandler.toString(), new ZosmfZosFileHandlerImpl("INTERNAL").toString());
+        Assert.assertEquals("Constructor should return ", zosFileHandler.toString(), new RseapiZosFileHandlerImpl("INTERNAL").toString());
     }
     
     @Test
     public void testNewDataset() throws ZosDatasetException {
         Object obj = zosFileHandlerSpy.newDataset(DATASET_NAME, zosImageMock);
-        Assert.assertTrue("Error in newDataset() method", obj instanceof ZosmfZosDatasetImpl);
+        Assert.assertTrue("Error in newDataset() method", obj instanceof RseapiZosDatasetImpl);
     }
     
     @Test
     public void testNewUNIXFile() throws Exception {
         Object obj = zosFileHandlerSpy.newUNIXFile(UNIX_FILE_NAME, zosImageMock);
-        Assert.assertTrue("Error in newUNIXFile() method", obj instanceof ZosmfZosUNIXFileImpl);
+        Assert.assertTrue("Error in newUNIXFile() method", obj instanceof RseapiZosUNIXFileImpl);
     }
     
     @Test
     public void testNewVSAMDataset() throws ZosVSAMDatasetException {
         Object obj = zosFileHandlerSpy.newVSAMDataset(DATASET_NAME, zosImageMock);
-        Assert.assertTrue("Error in newVSAMDataset() method", obj instanceof ZosmfZosVSAMDatasetImpl);
+        Assert.assertTrue("Error in newVSAMDataset() method", obj instanceof RseapiZosVSAMDatasetImpl);
     }
     
     @Test
@@ -131,7 +131,7 @@ public class TestZosmfZosFileHandlerImpl {
     
     @Test
     public void testCleanupDatasets() throws Exception {
-        List<ZosmfZosDatasetImpl> zosDatasets = new ArrayList<>();        
+        List<RseapiZosDatasetImpl> zosDatasets = new ArrayList<>();        
         Mockito.doReturn(false).when(zosDatasetImplMock).created();
         Mockito.doReturn(false).when(zosDatasetImplMock).exists();
         zosDatasets.add(zosDatasetImplMock);
@@ -181,7 +181,7 @@ public class TestZosmfZosFileHandlerImpl {
     
     @Test
     public void testCleanupDatasetsTestComplete() throws Exception {
-        List<ZosmfZosDatasetImpl> zosDatasets = new ArrayList<>();        
+        List<RseapiZosDatasetImpl> zosDatasets = new ArrayList<>();        
         Mockito.doReturn(false).when(zosDatasetImplMock).created();
         Mockito.doReturn(false).when(zosDatasetImplMock).exists();
         zosDatasets.add(zosDatasetImplMock);
@@ -225,7 +225,7 @@ public class TestZosmfZosFileHandlerImpl {
     
     @Test
     public void testCleanupVsamDatasets() throws Exception {
-        List<ZosmfZosVSAMDatasetImpl> zosVsamDatasets = new ArrayList<>();        
+        List<RseapiZosVSAMDatasetImpl> zosVsamDatasets = new ArrayList<>();        
         Mockito.doReturn(false).when(zosVSAMDatasetImplMock).created();
         Mockito.doReturn(false).when(zosVSAMDatasetImplMock).exists();
         zosVsamDatasets.add(zosVSAMDatasetImplMock);
@@ -273,7 +273,7 @@ public class TestZosmfZosFileHandlerImpl {
     
     @Test
     public void testCleanupVsamDatasetsTestComplete() throws Exception {
-        List<ZosmfZosVSAMDatasetImpl> zosVsamDatasets = new ArrayList<>();        
+        List<RseapiZosVSAMDatasetImpl> zosVsamDatasets = new ArrayList<>();        
         Mockito.doReturn(false).when(zosVSAMDatasetImplMock).created();
         Mockito.doReturn(false).when(zosVSAMDatasetImplMock).exists();
         zosVsamDatasets.add(zosVSAMDatasetImplMock);
@@ -309,7 +309,7 @@ public class TestZosmfZosFileHandlerImpl {
     
     @Test
     public void testCleanupUnixFiles() throws Exception {
-        List<ZosmfZosUNIXFileImpl> zosUnixFiles = new ArrayList<>();        
+        List<RseapiZosUNIXFileImpl> zosUnixFiles = new ArrayList<>();        
         Mockito.doReturn(false).when(zosUNIXFileImplMock).created();
         Mockito.doReturn(false).when(zosUNIXFileImplMock).deleted();
         Mockito.doReturn(false).when(zosUNIXFileImplMock).exists();
@@ -401,7 +401,7 @@ public class TestZosmfZosFileHandlerImpl {
     
     @Test
     public void testCleanupUnixFilesTestComplete() throws Exception {
-        List<ZosmfZosUNIXFileImpl> zosUnixFilesForCleanup = new ArrayList<>();        
+        List<RseapiZosUNIXFileImpl> zosUnixFilesForCleanup = new ArrayList<>();        
         Mockito.doReturn(false).when(zosUNIXFileImplMock).created();
         Mockito.doReturn(false).when(zosUNIXFileImplMock).exists();
         zosUnixFilesForCleanup.add(zosUNIXFileImplMock);
