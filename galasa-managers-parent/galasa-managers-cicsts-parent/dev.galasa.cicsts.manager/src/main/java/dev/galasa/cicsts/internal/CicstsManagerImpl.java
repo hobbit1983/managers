@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.annotations.Component;
 
 import dev.galasa.ManagerException;
+import dev.galasa.ProductVersion;
 import dev.galasa.cicsts.CicsRegion;
 import dev.galasa.cicsts.CicsTerminal;
 import dev.galasa.cicsts.CicstsManagerException;
@@ -26,9 +27,13 @@ import dev.galasa.cicsts.ICicsRegion;
 import dev.galasa.cicsts.ICicsTerminal;
 import dev.galasa.cicsts.internal.dse.DseProvisioningImpl;
 import dev.galasa.cicsts.internal.properties.CicstsPropertiesSingleton;
+import dev.galasa.cicsts.internal.properties.DefaultVersion;
 import dev.galasa.cicsts.internal.properties.ExtraBundles;
 import dev.galasa.cicsts.internal.properties.ProvisionType;
 import dev.galasa.cicsts.spi.CicsTerminalImpl;
+import dev.galasa.cicsts.spi.ICeciProvider;
+import dev.galasa.cicsts.spi.ICedaProvider;
+import dev.galasa.cicsts.spi.ICemtProvider;
 import dev.galasa.cicsts.spi.ICicsRegionLogonProvider;
 import dev.galasa.cicsts.spi.ICicsRegionProvisioned;
 import dev.galasa.cicsts.spi.ICicsRegionProvisioner;
@@ -60,6 +65,10 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
     private final ArrayList<ICicsRegionLogonProvider> logonProviders = new ArrayList<>();
 
     private String provisionType;
+    
+    private ICeciProvider ceciProvider;
+    private ICedaProvider cedaProvider;
+    private ICemtProvider cemtProvider;
 
     @Override
     public void initialise(@NotNull IFramework framework, @NotNull List<IManager> allManagers,
@@ -74,9 +83,6 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
             }
 
             youAreRequired(allManagers, activeManagers);
-
-            this.provisionType = ProvisionType.get();
-            this.provisioners.add(new DseProvisioningImpl(this));
         }
     }
 
@@ -94,6 +100,9 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
         if (this.zosManager == null) {
             throw new CicstsManagerException("Unable to locate the zOS Manager, required for the CICS TS Manager");
         }
+
+        this.provisionType = ProvisionType.get();
+        this.provisioners.add(new DseProvisioningImpl(this));
     }
 
     @Override
@@ -119,6 +128,13 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
 
     @Override
     public void provisionGenerate() throws ManagerException, ResourceUnavailableException {
+        // First, give the provisioners the opportunity to provision CICS regions
+        for (ICicsRegionProvisioner provisioner : provisioners) {
+            provisioner.cicsProvisionGenerate();
+        }
+
+        // Now provision all the individual annotations 
+
         List<AnnotatedField> annotatedFields = findAnnotatedFields(CicstsManagerField.class);
 
         for (AnnotatedField annotatedField : annotatedFields) {
@@ -172,7 +188,7 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
         ICicsRegionProvisioned region = this.provisionedCicsRegions.get(tag);
         if (region == null) {
             throw new CicstsManagerException("Unable to setup CICS Terminal for field " + field.getName()
-                    + ", tagged region " + tag + " was not provisioned");
+            + ", tagged region " + tag + " was not provisioned");
         }
 
         try {
@@ -184,9 +200,22 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
                     "Unable to setup CICS Terminal for field " + field.getName() + ", tagged region " + tag, e);
         }
     }
+    
+    @Override
+    public void provisionBuild() throws ManagerException, ResourceUnavailableException {
+        // First, give the provisioners the opportunity to build CICS regions
+        for (ICicsRegionProvisioner provisioner : provisioners) {
+            provisioner.cicsProvisionBuild();
+        }
+
+    }
 
     @Override
     public void provisionStart() throws ManagerException, ResourceUnavailableException {
+        // First, give the provisioners the opportunity to start CICS regions
+        for (ICicsRegionProvisioner provisioner : provisioners) {
+            provisioner.cicsProvisionStart();
+        }
 
         // Add the default Logon Provider incase one isn't supplied
         this.logonProviders.add(new CicstsDefaultLogonProvider());
@@ -212,6 +241,20 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
             } catch (TerminalInterruptedException e) { // NOSONAR - wish to hide disconnect errors
             }
         }
+        
+        // Give the provisioners the opportunity to stop CICS regions
+        for (ICicsRegionProvisioner provisioner : provisioners) {
+            provisioner.cicsProvisionStop();
+        }
+
+    }
+    
+    @Override
+    public void provisionDiscard() {
+        // Give the provisioners the opportunity to discard CICS regions
+        for (ICicsRegionProvisioner provisioner : provisioners) {
+            provisioner.cicsProvisionDiscard();
+        }
     }
 
     @Override
@@ -235,6 +278,56 @@ public class CicstsManagerImpl extends AbstractManager implements ICicstsManager
     @NotNull
     public List<ICicsRegionLogonProvider> getLogonProviders() {
         return new ArrayList<>(this.logonProviders);
+    }
+
+    @Override
+    public @NotNull ProductVersion getDefaultVersion() {
+        return DefaultVersion.get();
+    }
+
+    @Override
+    public void registerCeciProvider(@NotNull ICeciProvider ceciProvider) {
+        this.ceciProvider = ceciProvider;
+    }
+
+    @Override
+    public void registerCedaProvider(@NotNull ICedaProvider cedaProvider) {
+        this.cedaProvider = cedaProvider;
+    }
+
+    @Override
+    public void registerCemtProvider(@NotNull ICemtProvider cemtProvider) {
+        this.cemtProvider = cemtProvider;
+    }
+    
+    @Override
+    @NotNull
+    public ICeciProvider getCeciProvider() throws CicstsManagerException {
+        if (this.ceciProvider == null) {
+            throw new CicstsManagerException("No CECI provider has been registered");
+        }
+        
+        return this.ceciProvider;
+    }
+
+    @Override
+    @NotNull
+    public ICedaProvider getCedaProvider() throws CicstsManagerException {
+        if (this.cedaProvider == null) {
+            throw new CicstsManagerException("No CEDA provider has been registered");
+        }
+        
+        return this.cedaProvider;
+    }
+
+    @Override
+    @NotNull
+    public ICemtProvider getCemtProvider() throws CicstsManagerException {
+        if (this.cemtProvider == null) {
+            throw new CicstsManagerException("No CEMT provider has been registered");
+        }
+        
+        return this.cemtProvider;
     }
 
 }
