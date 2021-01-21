@@ -67,6 +67,9 @@ public class RseapiZosBatchManagerImpl extends AbstractManager implements IZosBa
     private final HashMap<String, RseapiZosBatchImpl> zosBatches = new HashMap<>();
 
     private Path artifactsRoot;
+    public Path getArtifactsRoot() {
+    	return artifactsRoot;
+    }
     
     private Path archivePath;
     public Path getArchivePath() {
@@ -213,7 +216,7 @@ public class RseapiZosBatchManagerImpl extends AbstractManager implements IZosBa
         ZosBatch annotationZosBatch = field.getAnnotation(ZosBatch.class);
 
         //*** Default the tag to primary
-        String tag = defaultString(annotationZosBatch.imageTag(), "primary");
+        String tag = defaultString(annotationZosBatch.imageTag(), "PRIMARY").toUpperCase();
 
         //*** Have we already generated this tag
         if (this.taggedZosBatches.containsKey(tag)) {
@@ -232,7 +235,7 @@ public class RseapiZosBatchManagerImpl extends AbstractManager implements IZosBa
         ZosBatchJobname annotationZosBatchJobname = field.getAnnotation(ZosBatchJobname.class);
 
         //*** Default the tag to primary
-        String tag = defaultString(annotationZosBatchJobname.imageTag(), "primary");
+        String tag = defaultString(annotationZosBatchJobname.imageTag(), "PRIMARY").toUpperCase();
         IZosImage image;
         try {
             image = zosManager.getImageForTag(tag);
